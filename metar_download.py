@@ -2,6 +2,8 @@
 #Made by: SvenAzari
 
 import requests
+import sys
+import re
 import os
 import datetime
 from datetime import timezone
@@ -48,22 +50,28 @@ for position, line in enumerate(synop):
 linesy = "".join(linesx) #all lines in one giant string
 linesnew = linesy.split("=\n") #split linesy
 
-met = open("/home/stefan/scripts/metar.txt", "w+") #creating and opening file to write scraped lines into (uncomment to use - 1/3)
+met = open("/home/azari/scripts/metar.txt", "w+") #creating and opening file to write scraped lines into (uncomment to use - 1/4)
 
 c = 0
 
 while True:
     try:
         metar = linesnew[0+c] #new string for each report
-        metarx = metar.split(" ") #split last line string to list
+        metarx = re.split(' |\n', metar) #split last line string to list
+        while("" in metarx): #remove unnecessary spaces
+            metarx.remove("")
+        if metarx[2] == "COR":
+            timex = metarx[4]
+        else:
+            timex = metarx[3]
         del metarx[0]
-        timex = metarx[2]
         time = timex[2:4]
         if float(hourutc) == float(time):
-            metarprint = " ".join(metarx) + "=" + '\n'
+            metarprint = " ".join(metarx)
 #            print(metarprint) #print scraped lines on screen - put under comment if you won't use this
-            met.write(metarprint) #write scraped lines to file - uncomment this to use (2/3)
+            met.write(metarprint.replace("=",'')) #write scraped lines to file - uncomment this to use (2/4)
 #            print('\n')
+            met.write('==\n') #(3/4)
             metarx.clear()
             d = len(linesnew)
             if float(c+1) == float(d-1):
@@ -79,8 +87,8 @@ while True:
         metarx.clear()
         break
 
-met.close() #closing file where lines are written - uncomment this to use (3/3)
+met.close() #closing file where lines are written - uncomment this to use (4/4)
        
 os.remove("latest_metar.txt") #removing file where web page content is written
-        
 
+sys.exit (0)
